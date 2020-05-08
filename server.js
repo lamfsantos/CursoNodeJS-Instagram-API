@@ -15,7 +15,7 @@ app.listen(port)
 
 var db = new mongodb.Db(
 	'instagram',
-	new mongodb.Server('localhost', 27017, {}),
+	new mongodb.Server('localhost', 27018, {}),
 	{}
 )
 
@@ -66,7 +66,7 @@ app.get('/api/:id', function(request, response){
 				if(error){
 					response.json(error)
 				}else{
-					response.json(results)
+					response.status(200).json(results)
 				}
 				mongoclient.close()
 			})
