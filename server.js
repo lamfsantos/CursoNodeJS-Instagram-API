@@ -94,3 +94,19 @@ app.put('/api/:id', function(request, response){
 		})
 	})
 })
+
+//delete by ID
+app.delete('/api/:id', function(request, response){
+	db.open(function(error, mongoclient){
+		mongoclient.collection('postagens', function(error, collection){
+			collection.remove({ _id: objectId(request.params.id)}, function(error, records){
+				if(error){
+					response.json(error)
+				}else{
+					response.json(records)
+				}
+				mongoclient.close()
+			})
+		})
+	})
+})
