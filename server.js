@@ -73,3 +73,24 @@ app.get('/api/:id', function(request, response){
 		})
 	})
 })
+
+//put by ID
+app.put('/api/:id', function(request, response){
+	db.open(function(error, mongoclient){
+		mongoclient.collection('postagens', function(error, collection){
+			collection.update(
+				{ _id: objectId(request.params.id)},
+				{ $set: { titulo: request.body.titulo}},
+				{},
+				function(error, records){
+					if(error){
+						response.json(error)
+					}else{
+						response.json(records)
+					}
+					mongoclient.close()
+				}
+			)
+		})
+	})
+})
