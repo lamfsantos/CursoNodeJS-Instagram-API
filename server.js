@@ -2,12 +2,15 @@ var express = require('express')
 var bodyParser = require('body-parser')
 var mongodb = require('mongodb')
 var objectId = require('mongodb').ObjectId
+var multiparty = require('connect-multiparty')
+var fs = require('fs')
 
 var app = express()
 
-//body-parser
+//Inclusão dos middlewares utilizados
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
+app.use(multiparty())
 
 var port = 8080
 
@@ -15,7 +18,7 @@ app.listen(port)
 
 var db = new mongodb.Db(
 	'instagram',
-	new mongodb.Server('localhost', 27018, {}),
+	new mongodb.Server('localhost', 27017, {}),
 	{}
 )
 
@@ -26,20 +29,44 @@ app.get('/', function(request, response) {
 })
 
 app.post('/api', function(request, response){
-	var dados = request.body
+	response.setHeader("Access-Control-Allow-Origin", "*") // ou por exemplo: http://localhost:3000 no lugar do *
+
+
+	var date = new Date()
+	var timestamp = date.getTime()
+
+	var url_imagem = timestamp + '_' + request.files.arquivo.originalFilename
+
+	var path_origem = request.files.arquivo.path
+	var path_destino = './uploads/' + url_imagem
+
+	fs.rename(path_origem, path_destino, function(error){
+		if (error) {
+			response.status(500).json({error})
+			return
+		}
+
+		var dados = {
+			url_imagem: url_imagem,
+			titulo: request.body.titulo
+		}
 	
-	db.open(function(error, mongoclient){
-		mongoclient.collection('postagens', function(error, collection){
-			collection.insert(dados, function(error, records){
-				if(error){
-					response.json({'status': 'erro'})
-				}else{
-					response.json({'status': 'Inclusão realizada com sucesso'})
-				}
-				mongoclient.close()
+		db.open(function(error, mongoclient){
+			mongoclient.collection('postagens', function(error, collection){
+				collection.insert(dados, function(error, records){
+					if(error){
+						response.json({'status': 'erro'})
+					}else{
+						response.json({'status': 'Inclusão realizada com sucesso'})
+					}
+					mongoclient.close()
+				})
 			})
 		})
+	
+
 	})
+	
 })
 
 app.get('/api', function(request, response){
