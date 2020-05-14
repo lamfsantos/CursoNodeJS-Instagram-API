@@ -102,6 +102,20 @@ app.get('/api/:id', function(request, response){
 	})
 })
 
+app.get('/uploads/:imagem', function(request, response){
+	var img = request.params.imagem
+
+	fs.readFile('./uploads/'+img, function(error, content){
+		if (error) {
+			response.status(400).json({error})
+			return
+		}
+
+		response.writeHead(200, {'content-type': 'image/jpg'})
+		response.end(content)
+	})
+})
+
 //put by ID
 app.put('/api/:id', function(request, response){
 	db.open(function(error, mongoclient){
