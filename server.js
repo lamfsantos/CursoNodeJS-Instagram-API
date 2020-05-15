@@ -153,14 +153,27 @@ app.put('/api/:id', function(request, response){
 app.delete('/api/:id', function(request, response){
 	db.open(function(error, mongoclient){
 		mongoclient.collection('postagens', function(error, collection){
-			collection.remove({ _id: objectId(request.params.id)}, function(error, records){
-				if(error){
-					response.json(error)
-				}else{
-					response.json(records)
+			collection.update(
+				{}, 
+				{
+					$pull: {
+						comentarios: {
+							id_comentario: objectId(request.params.id)
+						}
+					}
+				},
+				{
+					multi: true
+				},
+				function(error, records){
+					if(error){
+						response.json(error)
+					}else{
+						response.json(records)
+					}
+					mongoclient.close()
 				}
-				mongoclient.close()
-			})
+			)
 		})
 	})
 })
