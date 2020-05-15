@@ -12,6 +12,15 @@ app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
 app.use(multiparty())
 
+app.use(function(request, response, next){
+	response.setHeader("Access-Control-Allow-Origin", "*") // ou por exemplo: http://localhost:3000 no lugar do *
+	response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE") 
+	response.setHeader("Access-Control-Allow-Headers", "content-type") 
+	response.setHeader("Access-Control-Allow-Credentials", true) 
+
+	next()
+})
+
 var port = 8080
 
 app.listen(port)
@@ -29,9 +38,6 @@ app.get('/', function(request, response) {
 })
 
 app.post('/api', function(request, response){
-	response.setHeader("Access-Control-Allow-Origin", "*") // ou por exemplo: http://localhost:3000 no lugar do *
-
-
 	var date = new Date()
 	var timestamp = date.getTime()
 
@@ -70,7 +76,6 @@ app.post('/api', function(request, response){
 })
 
 app.get('/api', function(request, response){
-	response.setHeader("Access-Control-Allow-Origin", "*")
 	db.open(function(error, mongoclient){
 		mongoclient.collection('postagens', function(error, collection){
 			collection.find().toArray(function(error, results){
@@ -122,7 +127,14 @@ app.put('/api/:id', function(request, response){
 		mongoclient.collection('postagens', function(error, collection){
 			collection.update(
 				{ _id: objectId(request.params.id)},
-				{ $set: { titulo: request.body.titulo}},
+				{ 
+					$push: { 
+						comentarios: {
+							id_comentario: new objectId(),
+							comentario: request.body.comentario
+						}
+					}
+				},
 				{},
 				function(error, records){
 					if(error){
